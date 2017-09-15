@@ -54,7 +54,21 @@ def CNNLayers():
 	cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_*tf.log(y_conv),reduction_indices=[1]))
 	train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
 		
-def GiveFaceName():
+#def GiveFaceName():
+def GetNextBatch(batch_size , iter_num , imgs , labels):
+	batch_start = iter_num*batch_size
+	batch_end = batch_start + batch
+	batch_imgs = imgs[batch_start : batch_end]
+	batch_labels = labels[batch_start : batch_end]
+	return batch_imgs , batch_labels
+	
+tf.global_variables_initializer().run()
+	for i in range(20000):
+		if i%100 == 0
+			train_accuracy = accuracy.eval(feed_dict={x:batch_imgs,y_:batch_labels,keep_prob:1.0})
+			print("step %d, training accuracy = %g"%(i,training_accuracy))
+		train_step.run(feed_dict={x:batch_imgs,y_:batch_labels},keep_prob:0.5)
+		
 		
 		
 	
