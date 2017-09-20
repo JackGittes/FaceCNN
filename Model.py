@@ -1,74 +1,86 @@
 import tensorflow as tf
-import scipy
 import numpy as np
-import os
 import cnnconfig as cf
+import FaceInput
 
 height = cf.height
 width = cf.width
 class_num = cf.class_num
+batch_size = cf.batch_size
 
-def CNNLayers():
-	##Input layer
-	x = tf.placeholder(tf.float32,[None,height,width,3])
-	y_ = tf.placeholder(tf.float32,[None,class_num])
-	
-	##Convolution and Pooling operation
-	def conv2d(x,kernel):
-		return tf.nn.conv2d(x,kernel,strides=[1,1,1,1],padding='SAME')
-	def max_pool_2(x):
-		return tf.nn.max_pool(x,ksize=[1,2,2,1],strides=[1,2,2,1],padding='SAME')
-		
+x=tf.placeholder(tf.float32,[None,width,height,3])
+y_=tf.placeholder(tf.float32,[None,class_num])
+keep_prob = tf.placeholder(tf.float32)
+
+def weight_variable(shape):
+	initial = tf.truncated_normal(shape,stddev=0.02)
+	return tf.Variable(initial)
+
+def bias_variable(shape):
+	initial = tf.constant(0.02,shape=shape)
+	return tf.Variable(initial)
+
+def variable_with_weight_loss(shape, stddev, wl, name):
+    var = tf.Variable(tf.truncated_normal(shape, stddev=stddev),name=name)
+    if wl is not None:
+        weight_loss = tf.multiply(tf.nn.l2_loss(var), wl, name='weight_loss')
+        tf.add_to_collection('losses', weight_loss)
+    return var
+
+def conv2d(x, kernel):
+	return tf.nn.conv2d(x, kernel, strides=[1, 1, 1, 1], padding='SAME')
+
+def max_pool_2(x):
+	return tf.nn.max_pool(x, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
+
+def FaceNet():
 	##Convolution layer 1
-	kernel_1 = weight_variable([3,3,3,5])
-	bias_1 = bias_variable([5])
+	kernel_1 = variable_with_weight_loss([5,5,3,64], stddev=0.01, wl=0.0,name = 'kernel_1')
+	bias_1 = tf.Variable(tf.constant(0.01,shape=[64]),name='bias_1')
 	relu1 = tf.nn.relu(conv2d(x,kernel_1)+bias_1)
-	poo11 = max_pool_2(relu1)
+	pool1= max_pool_2(relu1)
+	norm1 = tf.nn.lrn(pool1, 4, bias=1.0, alpha=0.001 / 9.0, beta=0.75)
 
 	##Convolution layer 2	
-	kernel_2 = weight_variable([3,3,5,7])
-	bias_2 = bias_variable([7])
-	relu2 = tf.nn.relu(conv2d(pool1,kernel_2)+bias_2)
-	poo12 = max_pool_2(relu2)
+	kernel_2 = variable_with_weight_loss([3,3,64,64], stddev=0.01, wl=0.0,name='kernel_2')
+	bias_2 = tf.Variable(tf.constant(0.01,shape=[64]),name='bias_2')
+	relu2 = tf.nn.relu(conv2d(norm1,kernel_2)+bias_2)
+	pool2 = max_pool_2(relu2)
 		
 	##Convolution layer 3		
-	kernel_3 = weight_variable([3,3,5,7])
-	bias_3 = bias_variable([7])
+	kernel_3 = variable_with_weight_loss([5,5,64,64], stddev=0.01,wl= 0.0,name='kernel_3')
+	bias_3 = tf.Variable(tf.constant(0.01,shape=[64]),name='bias_3')
 	relu3 = tf.nn.relu(conv2d(pool2,kernel_3)+bias_3)
-	poo13 = max_pool_2(relu3)
-		
+	pool3 = tf.nn.max_pool(relu3,ksize=[1,2,2,1],strides=[1,2,2,1],padding='SAME')
+
+	##Convolution layer 4
+	kernel_4 = variable_with_weight_loss([5,5,64,64], stddev=0.01, wl=0.0,name='kernel_4')
+	bias_4 = tf.Variable(tf.constant(0.01,shape=[64]),name='bias_4')
+	relu4 = tf.nn.relu(conv2d(pool3,kernel_4)+bias_4)
+	pool4 = tf.nn.max_pool(relu4,ksize=[1,2,2,1],strides=[1,2,2,1],padding='SAME')
+
 	##Full-connected layer 1
-	W_fc1 = weight_variable([,1024])
-	b_fc1 = bias_variable([1024])
-	pool3_flat = tf.reshape(pool3,[-1,])
-	h_fc1 = tf.nn.relu(tf.matmal(pool3_flat,W_fc1) + b_fc1)
-	
-	keep_prob = tf.placeholder(tf.float32)
+	W_fc1 = variable_with_weight_loss([5*5*64,256], stddev=0.01, wl=0.003,name='W_fc1')
+	b_fc1 = tf.Variable(tf.constant(0.01,shape=[256]),name='b_fc1')
+	pool3_flat = tf.reshape(pool4,[-1,5*5*64])
+	h_fc1 = tf.nn.relu(tf.matmul(pool3_flat,W_fc1) + b_fc1)
+
 	h_fc1_drop = tf.nn.dropout(h_fc1,keep_prob)
 	
 	##Full-connected layer 2
-	W_fc2 = weight_variable([1024,class_num])
-	b_fc2 = bias_variable([class_num])
-	y_conv = softmax(tf.mutmal(h_fc1_drop,W_fc2)+b_fc2)
-		
-	cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_*tf.log(y_conv),reduction_indices=[1]))
-	train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
-		
-#def GiveFaceName():
-def GetNextBatch(batch_size , iter_num , imgs , labels):
-	batch_start = iter_num*batch_size
-	batch_end = batch_start + batch
-	batch_imgs = imgs[batch_start : batch_end]
-	batch_labels = labels[batch_start : batch_end]
-	return batch_imgs , batch_labels
-	
-tf.global_variables_initializer().run()
-	for i in range(20000):
-		if i%100 == 0
-			train_accuracy = accuracy.eval(feed_dict={x:batch_imgs,y_:batch_labels,keep_prob:1.0})
-			print("step %d, training accuracy = %g"%(i,training_accuracy))
-		train_step.run(feed_dict={x:batch_imgs,y_:batch_labels},keep_prob:0.5)
-		
-		
-		
-	
+	W_fc2 = variable_with_weight_loss([256,class_num], stddev=0.01, wl=0.003,name='W_fc2')
+	b_fc2 = tf.Variable(tf.constant(0.01,shape=[class_num]),name='b_fc2')
+	y_conv = tf.nn.softmax(tf.matmul(h_fc1_drop,W_fc2)+b_fc2)
+	return y_conv
+
+def GetNextBatch(batch_size , imgs , labels):
+	randarr = np.random.randint(0,len(imgs),batch_size)
+	batch_imgs = []
+	batch_labels = []
+	for i in randarr:
+		batch_imgs.append(imgs[i])
+		batch_labels.append(labels[i])
+	return batch_imgs,batch_labels
+
+def GetFullDataset():
+	return FaceInput.ReadFaceImg.GetDataset()
