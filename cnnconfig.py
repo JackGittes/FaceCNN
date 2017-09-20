@@ -10,3 +10,5 @@ width = 80
 class_num = 243
 batch_size = 128
 max_steps = 20000
+check_epoch = 1000
+eval_epoch = 100
