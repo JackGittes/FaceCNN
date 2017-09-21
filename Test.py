@@ -52,6 +52,10 @@ while(1):
         Top_One,prob = WhosFace(face)
         Peoplename = peoplenames[Top_One]
 
+        mygroup = [2,238,240]
+        mygp_pos = np.argmax([prob[2],prob[238],prob[240]])
+        mygroupname = peoplenames[mygroup[mygp_pos]]
+
         Top_Five = []
         Top_FivePos = []
         for i in range(5):
@@ -63,7 +67,7 @@ while(1):
         total_time = t2-t1 + total_time
         if timeframe == 10:
             os.system('cls')
-        #   print('\nFPS:%.4f'% (10.0/(total_time)))
+            print('\nFPS:%.4f'% (10.0/(total_time)))
             print('\n' + 'Top-1 prediction is '+Peoplename)
             print('\n' + 'Top-5 prediction: ' )
             for i in range(5):
@@ -72,7 +76,7 @@ while(1):
             timeframe = 0
             total_time = 0
 
-        text = 'The face is '+ Peoplename
+        text = 'The face is '+ mygroupname
         cv2.putText(frame, text, (0, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 0, 0), 2)
         cv2.imshow("DeepCore for Demo", frame)
 

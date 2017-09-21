@@ -37,3 +37,15 @@ def GetOneImage(path):
 	imgs.append(img)
 	return imgs
 
+def GetNextBatch(batch_size , imgs , labels):
+	randarr = np.random.randint(0,len(imgs),batch_size)
+	batch_imgs = []
+	batch_labels = []
+	for i in randarr:
+		batch_imgs.append(imgs[i])
+		batch_labels.append(labels[i])
+	return batch_imgs,batch_labels
+
+def GetFullDataset():
+	return ReadFaceImg.GetDataset()
+
