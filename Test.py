@@ -41,7 +41,7 @@ while(1):
             if w*h>area:
                 (x0,y0,w0,h0)=(x,y,w,h)
                 area = w*h
-        cv2.rectangle(frame, (x0, y0), (x0+w0, y0+h0), (0, 255, 0), 2)
+
 
         face=[]
         img = frame[x0:x0+w0,y0:y0+h0]
@@ -52,8 +52,8 @@ while(1):
         Top_One,prob = WhosFace(face)
         Peoplename = peoplenames[Top_One]
 
-        mygroup = [2,238,240]
-        mygp_pos = np.argmax([prob[2],prob[238],prob[240]])
+        mygroup = [67,68,69]
+        mygp_pos = np.argmax([prob[67],prob[68],prob[69]])
         mygroupname = peoplenames[mygroup[mygp_pos]]
 
         Top_Five = []
@@ -78,6 +78,7 @@ while(1):
 
         text = 'The face is '+ mygroupname
         cv2.putText(frame, text, (0, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 0, 0), 2)
+#        cv2.rectangle(frame, (x0, y0), (x0 + w0, y0 + h0), (0, 255, 0), 2)
         cv2.imshow("DeepCore for Demo", frame)
 
         timeframe = timeframe + 1

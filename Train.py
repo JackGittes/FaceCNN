@@ -32,7 +32,7 @@ def Train():
             if epoch % check_epoch == 0 and epoch>0:
                 saver = tf.train.Saver()
                 saver.save(sess, 'checkpoint/model_ckpt', global_step= epoch)
-            train_step.run(feed_dict={Model.x: batch_imgs, Model.y_: batch_labels, Model.keep_prob: 0.4})
+            train_step.run(feed_dict={Model.x: batch_imgs, Model.y_: batch_labels, Model.keep_prob: 0.3})
 
 if __name__ == '__main__':
     print('The training process will finish after %d steps.'%(max_steps))
