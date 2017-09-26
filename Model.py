@@ -40,27 +40,27 @@ def FaceNet():
 	pool3 = tf.nn.max_pool(relu3,ksize=[1,2,2,1],strides=[1,2,2,1],padding='SAME')
 
 	##Convolution layer 4
-	kernel_4 = variable_with_weight_loss([1,1,64,128], stddev=0.01, wl=0.0,name='kernel_4')
-	bias_4 = tf.Variable(tf.constant(0.01,shape=[128]),name='bias_4')
+	kernel_4 = variable_with_weight_loss([1,1,64,64], stddev=0.01, wl=0.0,name='kernel_4')
+	bias_4 = tf.Variable(tf.constant(0.01,shape=[64]),name='bias_4')
 	relu4 = tf.nn.relu(conv2d(pool3,kernel_4)+bias_4)
 	pool4 = tf.nn.max_pool(relu4,ksize=[1,2,2,1],strides=[1,2,2,1],padding='SAME')
 
 	##Convolution layer 5
-	kernel_5 = variable_with_weight_loss([1,1,128,64], stddev=0.01, wl=0.0,name='kernel_5')
-	bias_5 = tf.Variable(tf.constant(0.01,shape=[64]),name='bias_5')
+	kernel_5 = variable_with_weight_loss([1,1,64,32], stddev=0.01, wl=0.0,name='kernel_5')
+	bias_5 = tf.Variable(tf.constant(0.01,shape=[32]),name='bias_5')
 	relu5 = tf.nn.relu(conv2d(pool4,kernel_5)+bias_5)
-	pool5 = tf.nn.max_pool(relu5,ksize=[1,2,2,1],strides=[1,2,2,1],padding='SAME')
+#	pool5 = tf.nn.max_pool(relu5,ksize=[1,2,2,1],strides=[1,2,2,1],padding='SAME')
 
 	##Full-connected layer 1
-	W_fc1 = variable_with_weight_loss([5*5*64,512], stddev=0.01, wl=0.004,name='W_fc1')
-	b_fc1 = tf.Variable(tf.constant(0.01,shape=[512]),name='b_fc1')
-	pool_flat = tf.reshape(pool5,[-1,5*5*64])
+	W_fc1 = variable_with_weight_loss([10*10*32,64], stddev=0.01, wl=0.004,name='W_fc1')
+	b_fc1 = tf.Variable(tf.constant(0.01,shape=[64]),name='b_fc1')
+	pool_flat = tf.reshape(relu5,[-1,10*10*32])
 	h_fc1 = tf.nn.relu(tf.matmul(pool_flat,W_fc1) + b_fc1)
 
 	h_fc1_drop = tf.nn.dropout(h_fc1,keep_prob)
 	
 	##Full-connected layer 2
-	W_fc2 = variable_with_weight_loss([512,class_num], stddev=0.01, wl=0.004,name='W_fc2')
+	W_fc2 = variable_with_weight_loss([64,class_num], stddev=0.01, wl=0.004,name='W_fc2')
 	b_fc2 = tf.Variable(tf.constant(0.01,shape=[class_num]),name='b_fc2')
 	y_conv = tf.nn.softmax(tf.matmul(h_fc1_drop,W_fc2)+b_fc2)
 	return y_conv

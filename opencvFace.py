@@ -5,7 +5,7 @@ import cnnconfig as cf
 height = 80
 width = 80
 
-rootpath='F:\ZhaoMingxin'
+rootpath='F:/DeskFiles/Picture/Ye_JiaMeng'
 class ImgConvert():
     def GetDataset(self):
         path = os.listdir(rootpath)

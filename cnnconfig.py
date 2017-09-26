@@ -7,7 +7,7 @@
 
 height = 80
 width = 80
-class_num = 70
+class_num = 15
 batch_size = 128
 max_steps = 20000
 check_epoch = 1000

@@ -52,8 +52,8 @@ while(1):
         Top_One,prob = WhosFace(face)
         Peoplename = peoplenames[Top_One]
 
-        mygroup = [67,68,69]
-        mygp_pos = np.argmax([prob[67],prob[68],prob[69]])
+        mygroup = [44,47,46]
+        mygp_pos = np.argmax([prob[44],prob[47],prob[46]])
         mygroupname = peoplenames[mygroup[mygp_pos]]
 
         Top_Five = []

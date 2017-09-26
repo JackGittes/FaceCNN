@@ -4,15 +4,14 @@ import cnnconfig as cf
 import Model
 import tensorflow as tf
 import FaceInput
-import os
 from PIL import Image, ImageTk
-import time
 import tkinter as tk
+import time
 
 height = cf.height
 width = cf.width
 
-threshold = 0.000
+threshold = 0.1
 
 output = Model.FaceNet()
 ppimg,pplabels,peoplenames=FaceInput.ReadFaceImg.GetDataset()
@@ -37,9 +36,10 @@ face_cascade.load('D:/OpenCV/opencv/sources/data/haarcascades_cuda/haarcascade_f
 current_image = None
 
 root = tk.Tk()
+#root.geometry('600x800')
 root.title("DeepCore for Demo")
 panel = tk.Label(root)
-panel.pack(padx=10, pady=10)
+panel.pack(side = 'left',padx=10, pady=10)
 root.config(cursor="arrow")
 
 def FaceRecog(frame):
@@ -54,7 +54,6 @@ def FaceRecog(frame):
             if w * h > area:
                 (x0, y0, w0, h0) = (x, y, w, h)
                 area = w * h
-
         face = []
         img = frame[x0:x0 + w0, y0:y0 + h0]
         img = cv2.resize(img, (height, width))
@@ -63,8 +62,8 @@ def FaceRecog(frame):
         face.append(img)
         Top_One, prob = WhosFace(face)
 
-        mygroup = [67, 68, 69]
-        mygp_pos = np.argmax([prob[67], prob[68], prob[69]])
+        mygroup = [11, 13, 14]
+        mygp_pos = np.argmax([prob[11], prob[13], prob[14]])
         mygroupname = peoplenames[mygroup[mygp_pos]]
 
         if prob[mygroup[mygp_pos]]<threshold:
@@ -95,31 +94,56 @@ var = tk.StringVar()
 left = tk.Label(labelframe, textvariable=var, font=('Arial', 12), width=15, height=2,bg='white', justify='left')
 left.pack()
 
-btn = tk.Button(root, text="Finish Demo")
-btn.pack(fill="both", expand=True, padx=10, pady=10)
+var_FPS = tk.StringVar()
+fps_info = tk.Label(labelframe, textvariable=var_FPS, font=('Arial', 12), width=15, height=2,bg='white', justify='left')
+fps_info.pack(side = 'right')
 
+var_top1_prob = tk.StringVar()
+top1_prob = tk.Label(labelframe, textvariable=var_top1_prob, font=('Arial', 12), width=15, height=2,bg='white', justify='left')
+top1_prob.pack(side = 'right')
+
+face_fps=0
+top1 = 0.0
 def video_loop():
+    global top1,face_fps
     ret, frame = cap.read()
     if ret:
         key = cv2.waitKey(500)
+    t1 = time.time()
     frame,prob,gpname = FaceRecog(frame)
+    t2 = time.time()
     if ret:
-        cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)  # convert colors from BGR to RGBA
-        current_image = Image.fromarray(cv2image)  # convert image for PIL
-            #self.current_image= self.current_image.resize([1280,1024],PIL.Image.ANTIALIAS)
-        imgtk = ImageTk.PhotoImage(image=current_image)  # convert image for tkinter
-        panel.imgtk = imgtk  # anchor imgtk so it does not be deleted by garbage-collector
-        panel.config(image=imgtk)  # show the image
-        #self.root.attributes("-fullscreen",True)
+        cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
+        cv2image = cv2.resize(cv2image,(400,300))
+        current_image = Image.fromarray(cv2image)
+        imgtk = ImageTk.PhotoImage(image=current_image)
+        panel.imgtk = imgtk
+        panel.config(image=imgtk)
+        face_fps = 1/(t2-t1)
+        if gpname and gpname != 'Unrecognized':
+            top1 = prob[peoplenames.index(gpname)]
     if len(prob)>0:
         var.set(gpname)
-        # pred[1] = tk.Label(root, top5_names[1], font=('Arial', 12), width=15, height=2)
-        # pred[2] = tk.Label(root, top5_names[2], font=('Arial', 12), width=15, height=2)
-        # pred[3] = tk.Label(root, top5_names[3], font=('Arial', 12), width=15, height=2)
-        # pred[4] = tk.Label(root, top5_names[4], font=('Arial', 12), width=15, height=2)
-    root.after(70, video_loop)  # call the same function after 30 milliseconds
+        var_top1_prob.set('%.2f%%'%(100*top1))
+        var_FPS.set('%.2f'%(face_fps))
 
-video_loop()
+    root.after(30, video_loop)
+
+click_video = False
+def display_video():
+    global click_video
+    if click_video == False:
+        click_video = True
+        video_loop()
+    else:
+        click_video = True
+
+pause_btn = tk.Button(root, text="Pause", command=display_video)
+pause_btn.pack(fill="both", expand=True, padx=10, pady=10)
+
+btn = tk.Button(root, text="Finish Demo",fg='red',command= root.quit)
+btn.pack(fill="both", expand=True, padx=10, pady=10)
+#video_loop()
 root.mainloop()
 
 cap.release()

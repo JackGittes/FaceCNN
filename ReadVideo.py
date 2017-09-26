@@ -14,7 +14,7 @@ import os
 #
 # vid.release()
 # cv2.destroyAllWindows()
-rootpath = 'F:/DeskFiles/xiaoka/7/cropped'
+rootpath = 'F:\DeskFiles\Picture\Ye_JiaMeng\cropped'
 imglist = os.listdir(rootpath)
 imgnum = len(imglist)
 i=1
